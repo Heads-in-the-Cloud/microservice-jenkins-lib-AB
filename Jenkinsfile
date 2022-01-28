@@ -49,7 +49,7 @@ pipeline {
                             returnStdout: true
                         ).trim()
                         sh "docker context use default"
-                        image = docker.build("$POM_ARTIFACTID -t $commit -t $POM_VERSION")
+                        image = docker.build("$POM_ARTIFACTID -t $commit -t $POM_VERSION springboot-ecr-cd")
                     }
                 }
             }
