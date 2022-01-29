@@ -1,9 +1,0 @@
-name: EditorConfig
-
-on: push
-
-jobs:
-  editorconfig:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: zbeekman/EditorConfig-Action@v1.1.1
