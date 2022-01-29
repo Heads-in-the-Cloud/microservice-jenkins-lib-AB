@@ -1,4 +1,19 @@
-import com.smoothstack.utopia.Git;
+def getCommitSha() {
+  return sh(
+    script: "git rev-parse HEAD",
+    returnStdout: true
+  ).trim()
+}
+
+void setBuildStatus(String message, String state) {
+  step([
+      $class: "GitHubCommitStatusSetter",
+      reposSource: [$class: "ManuallyEnteredRepositorySource", url: repoUrl],
+    commitShaSource: [$class: "ManuallyEnteredShaSource", sha: commitSha],
+      errorHandlers: [[$class: "ChangingBuildStatusErrorHandler", result: "UNSTABLE"]],
+      statusResultSource: [ $class: "ConditionalStatusResultSource", results: [[$class: "AnyBuildResult", message: message, state: state]] ]
+  ]);
+}
 
 def call() {
     pipeline {
@@ -75,19 +90,11 @@ def call() {
 
         post {
             always {
-                steps {
-                    script {
-                        if(built) {
-                            updateGithubCommitStatus({
-                                result: "SUCCESS",
-                                description: "Build complete"
-                            })
-                        } else {
-                            updateGithubCommitStatus({
-                                result: "FAILURE",
-                                description: "Build failed"
-                            })
-                        }
+                script {
+                    if(built) {
+                        setBuildStatus("Build complete", "SUCCESS")
+                    } else {
+                        setBuildStatus("Build failed", "FAILURE")
                     }
                 }
             }
