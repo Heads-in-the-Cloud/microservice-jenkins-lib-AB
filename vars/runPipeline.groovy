@@ -36,11 +36,11 @@ def call() {
 
             stage('Build') {
                 steps {
-                    sh "docker context use default"
-                    image_label = "${project_id.toLowerCase()}-$POM_ARTIFACTID"
-                    sh "docker tag $image_label -t ${getCommitSha().toSubList(0, 7)}"
-                    sh "docker tag $image_label -t $POM_VERSION"
                     script {
+                        sh "docker context use default"
+                        def image_label = "${project_id.toLowerCase()}-$POM_ARTIFACTID"
+                        sh "docker tag $image_label -t ${getCommitSha().toSubList(0, 7)}"
+                        sh "docker tag $image_label -t $POM_VERSION"
                         image = docker.build()
                     }
                 }
@@ -55,11 +55,11 @@ def call() {
                         secretKeyVariable: 'AWS_SECRET_ACCESS_KEY'
                     ]]) {
                         script {
-                            region = sh(
+                            def region = sh(
                                 script:'aws configure get region',
                                 returnStdout: true
                             ).trim()
-                            aws_account_id = sh(
+                            def aws_account_id = sh(
                                 script:'aws sts get-caller-identity --query "Account" --output text',
                                 returnStdout: true
                             ).trim()
@@ -77,7 +77,7 @@ def call() {
                 post {
                     cleanup {
                         script {
-                            image_label = "${project_id.toLowerCase()}-$POM_ARTIFACTID"
+                            def image_label = "${project_id.toLowerCase()}-$POM_ARTIFACTID"
                             sh "docker rmi $image_label:${getCommitSha().toSubList(0, 7)}"
                             sh "docker rmi $image_label:$POM_VERSION"
                             sh "docker rmi $image_label:latest"
