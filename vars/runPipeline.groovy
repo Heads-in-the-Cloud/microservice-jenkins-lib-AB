@@ -1,8 +1,3 @@
-def project_id = "AB-utopia"
-
-def image = null
-def built = false
-
 def getCommitSha() {
   return sh(
     script: "git rev-parse HEAD",
@@ -23,6 +18,14 @@ void setBuildStatus(String message, String state) {
 def call() {
     pipeline {
         agent any
+
+        environment {
+            project_id = "AB-utopia"
+
+            image = null
+            built = false
+        }
+
 
         stages {
             //TODO
