@@ -1,0 +1,8 @@
+name: EditorConfig-Action
+
+on:
+  pull_request:
+    branches: [ main, dev ]
+
+jobs:
+  uses: zbeekman/EditorConfig-Action@v1.1.1
