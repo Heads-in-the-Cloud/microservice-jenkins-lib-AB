@@ -6,10 +6,15 @@ def getCommitSha() {
 }
 
 void setBuildStatus(String message, String state) {
+  repoUrl = sh(
+    script: "git config --get remote.origin.url",
+    returnStdout: true
+  ).trim()
+
   step([
       $class: "GitHubCommitStatusSetter",
       reposSource: [$class: "ManuallyEnteredRepositorySource", url: repoUrl],
-    commitShaSource: [$class: "ManuallyEnteredShaSource", sha: commitSha],
+    commitShaSource: [$class: "ManuallyEnteredShaSource", sha: getCommitSha()],
       errorHandlers: [[$class: "ChangingBuildStatusErrorHandler", result: "UNSTABLE"]],
       statusResultSource: [ $class: "ConditionalStatusResultSource", results: [[$class: "AnyBuildResult", message: message, state: state]] ]
   ]);
