@@ -75,17 +75,19 @@ def call() {
 
         post {
             always {
-                script {
-                    if(built) {
-                        updateGithubCommitStatus({
-                            result: "SUCCESS",
-                            description: "Build complete"
-                        })
-                    } else {
-                        updateGithubCommitStatus({
-                            result: "FAILURE",
-                            description: "Build failed"
-                        })
+                steps {
+                    script {
+                        if(built) {
+                            updateGithubCommitStatus({
+                                result: "SUCCESS",
+                                description: "Build complete"
+                            })
+                        } else {
+                            updateGithubCommitStatus({
+                                result: "FAILURE",
+                                description: "Build failed"
+                            })
+                        }
                     }
                 }
             }
