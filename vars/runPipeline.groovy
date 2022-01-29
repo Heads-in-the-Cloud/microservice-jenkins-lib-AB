@@ -1,3 +1,8 @@
+def project_id = "AB-utopia"
+
+def image = null
+def built = false
+
 def getCommitSha() {
   return sh(
     script: "git rev-parse HEAD",
@@ -19,13 +24,6 @@ def call() {
     pipeline {
         agent any
 
-        environment {
-            PROJECT_ID = "AB-utopia"
-
-            image = null
-            built = false
-        }
-
         stages {
             //TODO
             //stage('SonarQube Analysis') {
@@ -39,10 +37,12 @@ def call() {
             stage('Build') {
                 steps {
                     sh "docker context use default"
-                    def image_label = "${PROJECT_ID.toLowerCase()}-$POM_ARTIFACTID"
+                    image_label = "${project_id.toLowerCase()}-$POM_ARTIFACTID"
                     sh "docker tag $image_label -t ${getCommitSha().toSubList(0, 7)}"
                     sh "docker tag $image_label -t $POM_VERSION"
-                    image = docker.build()
+                    script {
+                        image = docker.build()
+                    }
                 }
             }
 
@@ -55,11 +55,11 @@ def call() {
                         secretKeyVariable: 'AWS_SECRET_ACCESS_KEY'
                     ]]) {
                         script {
-                            def region = sh(
+                            region = sh(
                                 script:'aws configure get region',
                                 returnStdout: true
                             ).trim()
-                            def aws_account_id = sh(
+                            aws_account_id = sh(
                                 script:'aws sts get-caller-identity --query "Account" --output text',
                                 returnStdout: true
                             ).trim()
@@ -77,7 +77,7 @@ def call() {
                 post {
                     cleanup {
                         script {
-                            def image_label = "${PROJECT_ID.toLowerCase()}-$POM_ARTIFACTID"
+                            image_label = "${project_id.toLowerCase()}-$POM_ARTIFACTID"
                             sh "docker rmi $image_label:${getCommitSha().toSubList(0, 7)}"
                             sh "docker rmi $image_label:$POM_VERSION"
                             sh "docker rmi $image_label:latest"
