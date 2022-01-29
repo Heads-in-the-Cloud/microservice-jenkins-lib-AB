@@ -27,12 +27,31 @@ def call() {
         environment {
             project_id = "AB-utopia"
 
+            POM_ARTIFACTID = sh(
+                script: 'mvn help:evaluate -Dexpression=project.artifactId -q -DforceStdout',
+                returnStdout: true
+            )
+            POM_VERSION = sh(
+                script: 'mvn help:evaluate -Dexpression=project.version -q -DforceStdout',
+                returnStdout: true
+            )
+
             image = null
             built = false
         }
 
-
         stages {
+
+            stage('Package') {
+                withMaven {
+
+                    sh "mvn clean package"
+
+                    script {
+                    }
+                }
+            }
+
             //TODO
             //stage('SonarQube Analysis') {
             //    steps {
@@ -47,9 +66,9 @@ def call() {
                     script {
                         sh "docker context use default"
                         def image_label = "${project_id.toLowerCase()}-$POM_ARTIFACTID"
+                        image = docker.build(image_label)
                         sh "docker tag $image_label -t ${getCommitSha().toSubList(0, 7)}"
                         sh "docker tag $image_label -t $POM_VERSION"
-                        image = docker.build()
                     }
                 }
             }
