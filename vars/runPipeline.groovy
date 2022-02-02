@@ -91,8 +91,8 @@ def call() {
                                 script:'aws sts get-caller-identity --query "Account" --output text',
                                 returnStdout: true
                             ).trim()
+                            def ecr_uri = "${aws_account_id}.dkr.ecr.${region}.amazonaws.com"
                             docker.withRegistry(
-                                ecr_uri = "${aws_account_id}.dkr.ecr.${region}.amazonaws.com"
                                 "https://$ecr_uri/$POM_ARTIFACTID",
                                 "ecr:$region:jenkins"
                             ) {
