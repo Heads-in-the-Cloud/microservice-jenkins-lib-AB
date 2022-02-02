@@ -43,7 +43,7 @@ def call() {
         stages {
 
             stage('Package') {
-                withMaven {
+                steps {
                     sh "mvn clean package"
                 }
             }
