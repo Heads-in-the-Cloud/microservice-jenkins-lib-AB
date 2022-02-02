@@ -45,15 +45,20 @@ def call() {
 
             stage('SonarQube Analysis') {
                 steps {
-                    sh """
-                        ./mvnw clean package
+                    withCredentials([
+                        string(credentialsId: "Sonar Token", variable: 'SONAR_TOKEN')
+                    ]) {
+                        sh """
+                            ./mvnw clean package
 
-                       ${SONARQUBE_ID}/bin/sonar-scanner \
-                           -Dsonar.projectKey=$PROJECT_ID-$POM_ARTIFACTID \
-                           -Dsonar.host.url=http://jenkins2.hitwc.link:9000 \
-                           -Dsonar.sources=./src/main/java/com/smoothstack/utopia/user \
-                           -Dsonar.java.binaries=./target/classes/com/smoothstack/utopia/user
-                    """
+                           ${SONARQUBE_ID}/bin/sonar-scanner \
+                               -Dsonar.login=$SONAR_TOKEN \
+                               -Dsonar.projectKey=$PROJECT_ID-$POM_ARTIFACTID \
+                               -Dsonar.host.url=http://jenkins2.hitwc.link:9000 \
+                               -Dsonar.sources=./src/main/java/com/smoothstack/utopia/user \
+                               -Dsonar.java.binaries=./target/classes/com/smoothstack/utopia/user
+                        """
+                    }
                 }
             }
 
