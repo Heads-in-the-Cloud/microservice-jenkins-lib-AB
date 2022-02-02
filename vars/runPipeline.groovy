@@ -25,7 +25,7 @@ def call() {
         agent any
 
         environment {
-            project_id = "AB-utopia"
+            PROJECT_ID = "AB-utopia"
 
             POM_ARTIFACTID = sh(
                 script: './mvnw help:evaluate -Dexpression=project.artifactId -q -DforceStdout',
@@ -35,6 +35,7 @@ def call() {
                 script: './mvnw help:evaluate -Dexpression=project.version -q -DforceStdout',
                 returnStdout: true
             )
+            SONARQUBE_ID = tool name: 'SonarQubeScanner-4.6.2'
 
             image = null
             built = false
@@ -45,7 +46,9 @@ def call() {
             stage('SonarQube Analysis') {
                 steps {
                     sh """
-                        ./mvnw clean verify sonar:sonar
+                        ./mvnw clean package
+
+                       ${SONARQUBE_ID}/bin/sonar-scanner \
                            -Dsonar.projectKey=$PROJECT_ID-$POM_ARTIFACTID \
                            -Dsonar.sources=./src/main/java/com/smoothstack/utopia/user \
                            -Dsonar.java.binaries=./target/classes/com/smoothstack/utopia/user
@@ -56,9 +59,8 @@ def call() {
             stage('Build') {
                 steps {
                     script {
-                        sh "./mvnw package"
                         sh "docker context use default"
-                        def image_label = "${project_id.toLowerCase()}-$POM_ARTIFACTID"
+                        def image_label = "${PROJECT_ID.toLowerCase()}-$POM_ARTIFACTID"
                         image = docker.build(image_label)
                         sh "docker tag $image_label -t ${getCommitSha().toSubList(0, 7)}"
                         sh "docker tag $image_label -t $POM_VERSION"
@@ -97,7 +99,7 @@ def call() {
                 post {
                     cleanup {
                         script {
-                            def image_label = "${project_id.toLowerCase()}-$POM_ARTIFACTID"
+                            def image_label = "${PROJECT_ID.toLowerCase()}-$POM_ARTIFACTID"
                             sh "docker rmi $image_label:${getCommitSha().toSubList(0, 7)}"
                             sh "docker rmi $image_label:$POM_VERSION"
                             sh "docker rmi $image_label:latest"
