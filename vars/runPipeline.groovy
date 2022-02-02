@@ -28,11 +28,11 @@ def call() {
             project_id = "AB-utopia"
 
             POM_ARTIFACTID = sh(
-                script: 'mvn help:evaluate -Dexpression=project.artifactId -q -DforceStdout',
+                script: './mvnw help:evaluate -Dexpression=project.artifactId -q -DforceStdout',
                 returnStdout: true
             )
             POM_VERSION = sh(
-                script: 'mvn help:evaluate -Dexpression=project.version -q -DforceStdout',
+                script: './mvnw help:evaluate -Dexpression=project.version -q -DforceStdout',
                 returnStdout: true
             )
 
@@ -44,13 +44,13 @@ def call() {
 
             stage('Package') {
                 steps {
-                    sh "mvn clean package"
+                    sh "./mvnw clean package"
                 }
             }
 
             stage('SonarQube Analysis') {
                 steps {
-                    sh 'mvn org.sonarsource.scanner.maven:sonar-maven-plugin:3.7.0.1746:sonar'
+                    sh './mvnw org.sonarsource.scanner.maven:sonar-maven-plugin:3.7.0.1746:sonar'
                 }
             }
 
