@@ -44,22 +44,15 @@ def call() {
 
             stage('Package') {
                 withMaven {
-
                     sh "mvn clean package"
-
-                    script {
-                    }
                 }
             }
 
-            //TODO
-            //stage('SonarQube Analysis') {
-            //    steps {
-            //        withSonarQubeEnv('SonarQube') {
-            //            sh './mvnw org.sonarsource.scanner.maven:sonar-maven-plugin:3.7.0.1746:sonar'
-            //        }
-            //    }
-            //}
+            stage('SonarQube Analysis') {
+                steps {
+                    sh 'mvn org.sonarsource.scanner.maven:sonar-maven-plugin:3.7.0.1746:sonar'
+                }
+            }
 
             stage('Build') {
                 steps {
