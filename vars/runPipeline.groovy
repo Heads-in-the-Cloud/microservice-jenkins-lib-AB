@@ -68,7 +68,7 @@ def call() {
                         sh "docker context use default"
                         def image_label = "${PROJECT_ID.toLowerCase()}-$POM_ARTIFACTID"
                         image = docker.build(image_label)
-                        sh "docker tag $image_label -t ${getCommitSha().toSubList(0, 7)}"
+                        sh "docker tag $image_label -t ${getCommitSha().substring(0, 7)}"
                         sh "docker tag $image_label -t $POM_VERSION"
                     }
                 }
