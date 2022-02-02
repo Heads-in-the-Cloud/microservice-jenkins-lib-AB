@@ -46,7 +46,7 @@ def call() {
             stage('SonarQube Analysis') {
                 steps {
                     withCredentials([
-                        string(credentialsId: "Sonar Token", variable: 'SONAR_TOKEN')
+                        string(credentialsId: "SonarQube Token", variable: 'SONAR_TOKEN')
                     ]) {
                         sh """
                             ./mvnw clean package
