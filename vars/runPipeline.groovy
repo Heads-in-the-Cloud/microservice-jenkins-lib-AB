@@ -47,7 +47,6 @@ def call() {
                     sh """
                         ./mvnw clean verify sonar:sonar
                            -Dsonar.projectKey=$PROJECT_ID-$POM_ARTIFACTID \
-                           -Dsonar.host.url=http://jenkins2.hitwc.link:9000 \
                            -Dsonar.sources=./src/main/java/com/smoothstack/utopia/user \
                            -Dsonar.java.binaries=./target/classes/com/smoothstack/utopia/user
                     """
