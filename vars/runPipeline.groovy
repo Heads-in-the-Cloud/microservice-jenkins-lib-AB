@@ -42,21 +42,21 @@ def call() {
 
         stages {
 
-            stage('Package') {
-                steps {
-                    sh "./mvnw clean package"
-                }
-            }
-
             stage('SonarQube Analysis') {
                 steps {
-                    sh './mvnw org.sonarsource.scanner.maven:sonar-maven-plugin:3.7.0.1746:sonar'
+                    sh """
+                        ./mvnw clean verify sonar:sonar
+                           -Dsonar.projectKey=$PROJECT_ID-$POM_ARTIFACTID \
+                           -Dsonar.sources=./src/main/java/com/smoothstack/utopia/user \
+                           -Dsonar.java.binaries=./target/classes/com/smoothstack/utopia/user
+                    """
                 }
             }
 
             stage('Build') {
                 steps {
                     script {
+                        sh "./mvnw package"
                         sh "docker context use default"
                         def image_label = "${project_id.toLowerCase()}-$POM_ARTIFACTID"
                         image = docker.build(image_label)
