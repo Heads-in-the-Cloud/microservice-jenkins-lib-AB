@@ -106,7 +106,7 @@ def call() {
                     cleanup {
                         script {
                             def image_label = "${PROJECT_ID.toLowerCase()}-$POM_ARTIFACTID"
-                            sh "docker rmi $image_label:${getCommitSha().toSubList(0, 7)}"
+                            sh "docker rmi $image_label:${getCommitSha().substring(0, 7)}"
                             sh "docker rmi $image_label:$POM_VERSION"
                             sh "docker rmi $image_label:latest"
                             sh "docker rmi $image_label"
