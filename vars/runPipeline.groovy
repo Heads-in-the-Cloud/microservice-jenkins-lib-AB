@@ -14,7 +14,7 @@ void setBuildStatus(String message, String state) {
   step([
       $class: "GitHubCommitStatusSetter",
       reposSource: [$class: "ManuallyEnteredRepositorySource", url: repoUrl],
-    commitShaSource: [$class: "ManuallyEnteredShaSource", sha: getCommitSha()],
+      commitShaSource: [$class: "ManuallyEnteredShaSource", sha: getCommitSha()],
       errorHandlers: [[$class: "ChangingBuildStatusErrorHandler", result: "UNSTABLE"]],
       statusResultSource: [ $class: "ConditionalStatusResultSource", results: [[$class: "AnyBuildResult", message: message, state: state]] ]
   ]);
@@ -123,29 +123,30 @@ def call() {
                                 def image_url = "${aws_account_id}.dkr.ecr.${region}.amazonaws.com"/${PROJECT_ID.toLowerCase()}-$POM_ARTIFACTID
                                 sh "kubectl -n microservices set image deployments/$POM_ARTIFACTID $POM_ARTIFACT=https://$image_url:${getCommitSha().substring(0, 7)}"
                             }
+                        }
                     }
-                }
 
-                post {
-                    cleanup {
-                        script {
-                            def image_label = "${PROJECT_ID.toLowerCase()}-$POM_ARTIFACTID"
-                            sh "docker rmi $image_label:${getCommitSha().substring(0, 7)}"
-                            sh "docker rmi $image_label:$POM_VERSION"
-                            sh "docker rmi $image_label:latest"
+                    post {
+                        cleanup {
+                            script {
+                                def image_label = "${PROJECT_ID.toLowerCase()}-$POM_ARTIFACTID"
+                                sh "docker rmi $image_label:${getCommitSha().substring(0, 7)}"
+                                sh "docker rmi $image_label:$POM_VERSION"
+                                sh "docker rmi $image_label:latest"
+                            }
                         }
                     }
                 }
             }
-        }
 
-        post {
-            always {
-                script {
-                    if(built) {
-                        setBuildStatus("Build complete", "SUCCESS")
-                    } else {
-                        setBuildStatus("Build failed", "FAILURE")
+            post {
+                always {
+                    script {
+                        if(built) {
+                            setBuildStatus("Build complete", "SUCCESS")
+                        } else {
+                            setBuildStatus("Build failed", "FAILURE")
+                        }
                     }
                 }
             }
