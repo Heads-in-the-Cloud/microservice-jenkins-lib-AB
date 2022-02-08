@@ -102,51 +102,51 @@ def call() {
                     }
                 }
 
-                stage("Deploy to EKS") {
-                    steps {
-                        withCredentials([[
-                            $class: 'AmazonWebServicesCredentialsBinding',
-                            credentialsId: "jenkins",
-                            accessKeyVariable: 'AWS_ACCESS_KEY_ID',
-                            secretKeyVariable: 'AWS_SECRET_ACCESS_KEY'
-                        ]]) {
-                            script {
-                                def region = sh(
-                                    script:'aws configure get region',
-                                    returnStdout: true
-                                ).trim()
-                                sh "aws eks --region $region update-kubeconfig --name $PROJECT_ID"
-                                def aws_account_id = sh(
-                                    script:'aws sts get-caller-identity --query "Account" --output text',
-                                    returnStdout: true
-                                ).trim()
-                                def image_url = "${aws_account_id}.dkr.ecr.${region}.amazonaws.com"/${PROJECT_ID.toLowerCase()}-$POM_ARTIFACTID
-                                sh "kubectl -n microservices set image deployments/$POM_ARTIFACTID $POM_ARTIFACT=https://$image_url:${getCommitSha().substring(0, 7)}"
-                            }
-                        }
-                    }
-
-                    post {
-                        cleanup {
-                            script {
-                                def image_label = "${PROJECT_ID.toLowerCase()}-$POM_ARTIFACTID"
-                                sh "docker rmi $image_label:${getCommitSha().substring(0, 7)}"
-                                sh "docker rmi $image_label:$POM_VERSION"
-                                sh "docker rmi $image_label:latest"
-                            }
+                post {
+                    cleanup {
+                        script {
+                            def image_label = "${PROJECT_ID.toLowerCase()}-$POM_ARTIFACTID"
+                            sh "docker rmi $image_label:${getCommitSha().substring(0, 7)}"
+                            sh "docker rmi $image_label:$POM_VERSION"
+                            sh "docker rmi $image_label:latest"
                         }
                     }
                 }
             }
 
-            post {
-                always {
-                    script {
-                        if(built) {
-                            setBuildStatus("Build complete", "SUCCESS")
-                        } else {
-                            setBuildStatus("Build failed", "FAILURE")
+            stage("Deploy to EKS") {
+                steps {
+                    withCredentials([[
+                        $class: 'AmazonWebServicesCredentialsBinding',
+                        credentialsId: "jenkins",
+                        accessKeyVariable: 'AWS_ACCESS_KEY_ID',
+                        secretKeyVariable: 'AWS_SECRET_ACCESS_KEY'
+                    ]]) {
+                        script {
+                            def region = sh(
+                                script:'aws configure get region',
+                                returnStdout: true
+                            ).trim()
+                            sh "aws eks --region $region update-kubeconfig --name $PROJECT_ID"
+                            def aws_account_id = sh(
+                                script:'aws sts get-caller-identity --query "Account" --output text',
+                                returnStdout: true
+                            ).trim()
+                            def image_url = "${aws_account_id}.dkr.ecr.${region}.amazonaws.com"/${PROJECT_ID.toLowerCase()}-$POM_ARTIFACTID
+                            sh "kubectl -n microservices set image deployments/$POM_ARTIFACTID $POM_ARTIFACT=https://$image_url:${getCommitSha().substring(0, 7)}"
                         }
+                    }
+                }
+            }
+        }
+
+        post {
+            always {
+                script {
+                    if(built) {
+                        setBuildStatus("Build complete", "SUCCESS")
+                    } else {
+                        setBuildStatus("Build failed", "FAILURE")
                     }
                 }
             }
