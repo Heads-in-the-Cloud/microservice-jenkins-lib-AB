@@ -124,16 +124,16 @@ def call() {
                     ]]) {
                         script {
                             def region = sh(
-                                script:'aws configure get region',
+                                script: 'aws configure get region',
                                 returnStdout: true
                             ).trim()
                             sh "aws eks --region $region update-kubeconfig --name $PROJECT_ID"
                             def aws_account_id = sh(
-                                script:'aws sts get-caller-identity --query "Account" --output text',
+                                script: 'aws sts get-caller-identity --query "Account" --output text',
                                 returnStdout: true
                             ).trim()
-                            def image_url = "${aws_account_id}.dkr.ecr.${region}.amazonaws.com"/${PROJECT_ID.toLowerCase()}-$POM_ARTIFACTID
-                            sh "kubectl -n microservices set image deployments/$POM_ARTIFACTID $POM_ARTIFACT=https://$image_url:${getCommitSha().substring(0, 7)}"
+                            def image_url = "${aws_account_id}.dkr.ecr.${region}.amazonaws.com/${PROJECT_ID.toLowerCase()}-$POM_ARTIFACTID"
+                            sh "kubectl -n microservices set image deployments/$POM_ARTIFACTID $POM_ARTIFACTID=https://$image_url:${getCommitSha().substring(0, 7)}"
                         }
                     }
                 }
