@@ -5,6 +5,8 @@ def getCommitSha() {
   ).trim()
 }
 
+// TODO: additional testing needed
+// For returning the build status for the associated commit back to GitHub
 void setBuildStatus(String message, String state) {
   repoUrl = sh(
     script: "git config --get remote.origin.url",
@@ -51,12 +53,12 @@ def call() {
                         sh """
                             ./mvnw clean package
 
-                           ${SONARQUBE_ID}/bin/sonar-scanner \
-                               -Dsonar.login=$SONAR_TOKEN \
-                               -Dsonar.projectKey=$PROJECT_ID-$POM_ARTIFACTID \
-                               -Dsonar.host.url=http://jenkins2.hitwc.link:9000 \
-                               -Dsonar.sources=./src/main/java/com/smoothstack/utopia \
-                               -Dsonar.java.binaries=./target/classes/com/smoothstack/utopia
+                            ${SONARQUBE_ID}/bin/sonar-scanner \
+                                -Dsonar.login=$SONAR_TOKEN \
+                                -Dsonar.projectKey=$PROJECT_ID-$POM_ARTIFACTID \
+                                -Dsonar.host.url=http://jenkins2.hitwc.link:9000 \
+                                -Dsonar.sources=./src/main/java/com/smoothstack/utopia \
+                                -Dsonar.java.binaries=./target/classes/com/smoothstack/utopia
                         """
                     }
                 }
@@ -66,10 +68,7 @@ def call() {
                 steps {
                     script {
                         sh "docker context use default"
-                        def image_label = "${PROJECT_ID.toLowerCase()}-$POM_ARTIFACTID"
-                        image = docker.build(image_label)
-                        sh "docker tag $image_label $image_label:${getCommitSha().substring(0, 7)}"
-                        sh "docker tag $image_label $image_label:$POM_VERSION"
+                        image = docker.build("${PROJECT_ID.toLowerCase()}-$POM_ARTIFACTID")
                     }
                 }
             }
@@ -97,6 +96,8 @@ def call() {
                                 "ecr:$region:jenkins"
                             ) {
                                 image.push('latest')
+                                image.push("$POM_VERSION")
+                                image.push(getCommitSha().substring(0, 7))
                             }
                         }
                     }
@@ -105,10 +106,7 @@ def call() {
                 post {
                     cleanup {
                         script {
-                            def image_label = "${PROJECT_ID.toLowerCase()}-$POM_ARTIFACTID"
-                            sh "docker rmi $image_label:${getCommitSha().substring(0, 7)}"
-                            sh "docker rmi $image_label:$POM_VERSION"
-                            sh "docker rmi $image_label:latest"
+                            sh "docker rmi "${PROJECT_ID.toLowerCase()}-$POM_ARTIFACTID"
                         }
                     }
                 }
