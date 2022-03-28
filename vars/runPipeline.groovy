@@ -97,15 +97,12 @@ def call() {
                             ).trim()
                             def ecr_uri = "${aws_account_id}.dkr.ecr.${region}.amazonaws.com"
                             image_url = "$ecr_uri/$image_label"
-                            sh "aws ecr get-login-password --region $region | docker login --username AWS --password-stdin $ecr_uri"
 
-                            sh "docker tag $image_label $image_url:latest"
-                            sh "docker tag $image_label $image_url:$POM_VERSION"
-                            sh "docker tag $image_label $image_url:${getCommitSha().substring(0, 7)}"
-
-                            sh "docker push $image_url:latest"
-                            sh "docker push $image_url:$POM_VERSION"
-                            sh "docker push $image_url:${getCommitSha().substring(0, 7)}"
+                            docker.withRegistry("https://$image_url", "ecr:$region:jenkins") {
+                                image.push('latest')
+                                image.push(POM_VERSION)
+                                image.push(getCommitSha().substring(0, 7))
+                            }
                         }
                     }
                 }
@@ -132,7 +129,7 @@ def call() {
                     ]]) {
                         script {
                             sh "aws eks --region $region update-kubeconfig --name $PROJECT_ID"
-                            sh "kubectl -n microservices set image deployments/$POM_ARTIFACTID $POM_ARTIFACTID=https://$image_url:latest"
+                            sh "kubectl -n microservices set image deployments/$POM_ARTIFACTID $POM_ARTIFACTID=$image_url:latest"
                         }
                     }
                 }
