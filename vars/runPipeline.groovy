@@ -47,7 +47,9 @@ def call() {
         stages {
 
             stage('Maven Package') {
-                sh "./mvnw clean package"
+                steps {
+                    sh "./mvnw clean package"
+                }
             }
 
             stage('SonarQube Analysis') {
