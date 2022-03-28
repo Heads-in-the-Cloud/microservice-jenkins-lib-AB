@@ -129,7 +129,7 @@ def call() {
                     ]]) {
                         script {
                             sh "aws eks --region $region update-kubeconfig --name $PROJECT_ID"
-                            sh "kubectl -n microservices set image deployments/$POM_ARTIFACTID $POM_ARTIFACTID=$image_url:latest"
+                            sh "kubectl -n microservices set image deployments/$POM_ARTIFACTID $POM_ARTIFACTID=$image_url:${getCommitSha().substring(0, 7)}"
                         }
                     }
                 }
