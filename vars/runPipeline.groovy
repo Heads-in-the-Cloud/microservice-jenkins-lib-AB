@@ -131,7 +131,7 @@ def call() {
                                 returnStdout: true
                             ).trim()
                             def image_url = "${aws_account_id}.dkr.ecr.${region}.amazonaws.com/${PROJECT_ID.toLowerCase()}-$POM_ARTIFACTID"
-                            sh "kubectl -n microservices set image deployments/$POM_ARTIFACTID $POM_ARTIFACTID=https://$image_url:${getCommitSha().substring(0, 7)}"
+                            sh "kubectl -n microservices set image deployments/$POM_ARTIFACTID $POM_ARTIFACTID=https://$image_url:$POM_VERSION"
                         }
                     }
                 }
