@@ -41,6 +41,7 @@ def call() {
 
             image = null
             built = false
+            image_label = "${PROJECT_ID.toLowerCase()}-$POM_ARTIFACTID"
         }
 
         stages {
@@ -68,7 +69,7 @@ def call() {
                 steps {
                     script {
                         sh "docker context use default"
-                        image = docker.build("${PROJECT_ID.toLowerCase()}-$POM_ARTIFACTID")
+                        image = docker.build(image_label)
                     }
                 }
             }
@@ -82,7 +83,7 @@ def call() {
                         secretKeyVariable: 'AWS_SECRET_ACCESS_KEY'
                     ]]) {
                         script {
-                            def region = sh(
+                            region = sh(
                                 script:'aws configure get region',
                                 returnStdout: true
                             ).trim()
@@ -90,13 +91,10 @@ def call() {
                                 script:'aws sts get-caller-identity --query "Account" --output text',
                                 returnStdout: true
                             ).trim()
-                            def ecr_uri = "${aws_account_id}.dkr.ecr.${region}.amazonaws.com"
-                            docker.withRegistry(
-                                "https://$ecr_uri/${PROJECT_ID.toLowerCase()}-$POM_ARTIFACTID",
-                                "ecr:$region:jenkins"
-                            ) {
+                            image_url = "https://${aws_account_id}.dkr.ecr.${region}.amazonaws.com/$image_label"
+                            docker.withRegistry(image_url, "ecr:$region:jenkins") {
                                 image.push('latest')
-                                image.push("$POM_VERSION")
+                                image.push(POM_VERSION)
                                 image.push(getCommitSha().substring(0, 7))
                             }
                         }
@@ -106,7 +104,7 @@ def call() {
                 post {
                     cleanup {
                         script {
-                            sh "docker rmi ${PROJECT_ID.toLowerCase()}-$POM_ARTIFACTID"
+                            sh "docker rmi $image_label"
                         }
                     }
                 }
@@ -121,17 +119,8 @@ def call() {
                         secretKeyVariable: 'AWS_SECRET_ACCESS_KEY'
                     ]]) {
                         script {
-                            def region = sh(
-                                script: 'aws configure get region',
-                                returnStdout: true
-                            ).trim()
                             sh "aws eks --region $region update-kubeconfig --name $PROJECT_ID"
-                            def aws_account_id = sh(
-                                script: 'aws sts get-caller-identity --query "Account" --output text',
-                                returnStdout: true
-                            ).trim()
-                            def image_url = "${aws_account_id}.dkr.ecr.${region}.amazonaws.com/${PROJECT_ID.toLowerCase()}-$POM_ARTIFACTID"
-                            sh "kubectl -n microservices set image deployments/$POM_ARTIFACTID $POM_ARTIFACTID=https://$image_url:$POM_VERSION"
+                            sh "kubectl -n microservices set image deployments/$POM_ARTIFACTID $POM_ARTIFACTID=$image_url:${getCommitHash().substring(0, 7)}"
                         }
                     }
                 }
