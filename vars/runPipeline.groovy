@@ -106,7 +106,7 @@ def call() {
                 post {
                     cleanup {
                         script {
-                            sh "docker rmi "${PROJECT_ID.toLowerCase()}-$POM_ARTIFACTID"
+                            sh "docker rmi ${PROJECT_ID.toLowerCase()}-$POM_ARTIFACTID"
                         }
                     }
                 }
