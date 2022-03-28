@@ -114,9 +114,6 @@ def call() {
                     cleanup {
                         script {
                             sh "docker rmi $image_label"
-                            sh "docker rmi $image_url:latest"
-                            sh "docker rmi $image_url:$POM_VERSION"
-                            sh "docker rmi $image_url:${getCommitSha.substring(0, 7)}"
                         }
                     }
                 }
