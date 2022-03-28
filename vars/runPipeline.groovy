@@ -95,7 +95,7 @@ def call() {
                                 script:'aws sts get-caller-identity --query "Account" --output text',
                                 returnStdout: true
                             ).trim()
-                            def ecr_uri = ${aws_account_id}.dkr.ecr.${region}.amazonaws.com
+                            def ecr_uri = "${aws_account_id}.dkr.ecr.${region}.amazonaws.com"
                             image_url = "https://$ecr_uri/$image_label"
                             sh "aws ecr get-login-password --region $region | docker login --username AWS --password-stdin $ecr_uri"
 
