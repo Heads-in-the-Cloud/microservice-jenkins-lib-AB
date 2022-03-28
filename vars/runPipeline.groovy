@@ -46,14 +46,16 @@ def call() {
 
         stages {
 
+            stage('Maven Package') {
+                sh "./mvnw clean package"
+            }
+
             stage('SonarQube Analysis') {
                 steps {
                     withCredentials([
                         string(credentialsId: "SonarQube Token", variable: 'SONAR_TOKEN')
                     ]) {
                         sh """
-                            ./mvnw clean package
-
                             ${SONARQUBE_ID}/bin/sonar-scanner \
                                 -Dsonar.login=$SONAR_TOKEN \
                                 -Dsonar.projectKey=$PROJECT_ID-$POM_ARTIFACTID \
@@ -65,7 +67,7 @@ def call() {
                 }
             }
 
-            stage('Build') {
+            stage('Build Docker image') {
                 steps {
                     script {
                         sh "docker context use default"
@@ -91,12 +93,17 @@ def call() {
                                 script:'aws sts get-caller-identity --query "Account" --output text',
                                 returnStdout: true
                             ).trim()
-                            image_url = "https://${aws_account_id}.dkr.ecr.${region}.amazonaws.com/$image_label"
-                            docker.withRegistry(image_url, "ecr:$region:jenkins") {
-                                image.push('latest')
-                                image.push(POM_VERSION)
-                                image.push(getCommitSha().substring(0, 7))
-                            }
+                            def ecr_uri = ${aws_account_id}.dkr.ecr.${region}.amazonaws.com
+                            image_url = "https://$ecr_uri/$image_label"
+                            sh "aws ecr get-login-password --region $region | docker login --username AWS --password-stdin $ecr_uri"
+
+                            sh "docker tag $image_label $image_url:latest"
+                            sh "docker tag $image_label $image_url:$POM_VERSION"
+                            sh "docker tag $image_label $image_url:${getCommitSha().substring(0, 7)}"
+
+                            sh "docker push $image_url:latest"
+                            sh "docker push $image_url:$POM_VERSION"
+                            sh "docker push $image_url:${getCommitSha().substring(0, 7)}"
                         }
                     }
                 }
@@ -105,9 +112,9 @@ def call() {
                     cleanup {
                         script {
                             sh "docker rmi $image_label"
-                            sh "docker rmi $image_label:latest"
-                            sh "docker rmi $image_label:${getCommitSha.substring(0, 7)}"
-                            sh "docker rmi $image_label:$POM_VERSION"
+                            sh "docker rmi $image_url:latest"
+                            sh "docker rmi $image_url:$POM_VERSION"
+                            sh "docker rmi $image_url:${getCommitSha.substring(0, 7)}"
                         }
                     }
                 }
