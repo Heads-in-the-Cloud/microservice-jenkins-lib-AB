@@ -86,7 +86,7 @@ def call() {
                                 image.push(env.GIT_COMMIT_HASH)
                             }
 
-                            docker.withRegistry("${JCR_REPO_URI}", "$JCR_LOGIN") {
+                            docker.withRegistry("${JCR_REPO_URI}", "AB_artifactory_login") {
                                 image.push('latest')
                                 image.push(env.POM_VERSION)
                                 image.push(env.GIT_COMMIT_HASH)
