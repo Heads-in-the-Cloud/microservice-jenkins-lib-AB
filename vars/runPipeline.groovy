@@ -21,6 +21,10 @@ def call() {
             ).trim()
             EKS_CLUSTER_NAME = "$PROJECT_ID"
             SONARQUBE_ID = tool(name: 'SonarQubeScanner-4.6.2')
+
+            JCR_ENDPOINT = "https://ab-artifactory.hitwc.link/artifactory"
+            JCR_LOGIN    = credentials("AB_artifactory_login")
+            JCR_REPO_URI = "${JCR_ENDPOINT}/utopia/${IMAGE_LABEL}"
         }
 
         stages {
@@ -57,7 +61,7 @@ def call() {
                 }
             }
 
-            stage('Push to registry') {
+            stage('Push to registries') {
                 steps {
                     withCredentials([[
                         $class: 'AmazonWebServicesCredentialsBinding',
@@ -81,6 +85,12 @@ def call() {
                                 image.push(env.POM_VERSION)
                                 image.push(env.GIT_COMMIT_HASH)
                             }
+
+                            docker.withRegistry("${JCR_REPO_URI}", "$JCR_LOGIN") {
+                                image.push('latest')
+                                image.push(env.POM_VERSION)
+                                image.push(env.GIT_COMMIT_HASH)
+                            }
                         }
                     }
                 }
@@ -88,10 +98,16 @@ def call() {
                 post {
                     cleanup {
                         script {
-                            sh 'docker rmi $IMAGE_LABEL'
+                            // Remove ECR-tagged images
                             sh 'docker rmi $IMAGE_URL:latest'
                             sh 'docker rmi $IMAGE_URL:$POM_VERSION'
                             sh 'docker rmi $IMAGE_URL:$GIT_COMMIT_HASH'
+                            // Remove JCR-tagged images
+                            sh 'docker rmi $IMAGE_URL:latest'
+                            sh 'docker rmi $IMAGE_URL:$POM_VERSION'
+                            sh 'docker rmi $IMAGE_URL:$GIT_COMMIT_HASH'
+                            // Remove base image
+                            sh 'docker rmi $IMAGE_LABEL'
                         }
                     }
                 }
