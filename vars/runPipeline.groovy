@@ -1,4 +1,4 @@
-def get_pom_value() {
+def get_pom_value(String key) {
     return sh(
         script: "./mvnw help:evaluate -Dexpression=${key} -q -DforceStdout",
         returnStdout: true
