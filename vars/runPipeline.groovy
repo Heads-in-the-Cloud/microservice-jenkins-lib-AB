@@ -20,6 +20,7 @@ def call() {
                 returnStdout: true
             ).trim()
             EKS_CLUSTER_NAME = PROJECT_ID.toLowerCase()
+            SONARQUBE_ID = tool(name: 'SonarQubeScanner-4.6.2')
         }
 
         stages {
@@ -36,7 +37,7 @@ def call() {
                     ]) {
                         // SonarQube Analysis
                         sh '''
-                            SonarQubeScanner-4.6.2/bin/sonar-scanner \
+                            ${SONARQUBE_ID}/bin/sonar-scanner \
                                 -Dsonar.login=$SONAR_TOKEN \
                                 -Dsonar.projectKey=$PROJECT_ID-$POM_ARTIFACT_ID \
                                 -Dsonar.host.url=http://jenkins2.hitwc.link:9000 \
