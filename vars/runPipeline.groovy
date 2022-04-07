@@ -1,14 +1,14 @@
+def get_pom_value = { key -> sh(
+    script: "./mvnw help:evaluate -Dexpression=${key} -q -DforceStdout",
+    returnStdout: true
+)}
+
 def call() {
     pipeline {
         agent any
 
         environment {
             PROJECT_ID = 'AB-utopia'
-
-            def get_pom_value = { key -> sh(
-                script: "./mvnw help:evaluate -Dexpression=${key} -q -DforceStdout",
-                returnStdout: true
-            )}
 
             POM_ARTIFACT_ID = get_pom_value('project.artifactId')
             POM_VERSION = get_pom_value('project.version')
