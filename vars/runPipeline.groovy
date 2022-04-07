@@ -79,7 +79,7 @@ def call() {
                             ).trim()
                             env.ECR_URL = "${aws_account_id}.dkr.ecr.${aws_region}.amazonaws.com/$IMAGE_LABEL"
 
-                            docker.withRegistry("https://${env.IMAGE_URL}", "ecr:$aws_region:jenkins") {
+                            docker.withRegistry("https://${env.ECR_URL}", "ecr:$aws_region:jenkins") {
                                 image.push('latest')
                                 image.push(env.POM_VERSION)
                                 image.push(env.GIT_COMMIT_HASH)
