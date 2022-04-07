@@ -66,7 +66,7 @@ def call() {
                         secretKeyVariable: 'AWS_SECRET_ACCESS_KEY'
                     ]]) {
                         script {
-                            def region = sh(
+                            def aws_region = sh(
                                 script:'aws configure get region',
                                 returnStdout: true
                             ).trim()
@@ -106,8 +106,11 @@ def call() {
                         secretKeyVariable: 'AWS_SECRET_ACCESS_KEY'
                     ]]) {
                         script {
-                            // get tf_info
-                            sh "aws eks --region ${tf_info.region} update-kubeconfig --name $EKS_CLUSTER_NAME"
+                            def aws_region = sh(
+                                script:'aws configure get region',
+                                returnStdout: true
+                            ).trim()
+                            sh "aws eks --region ${aws_region} update-kubeconfig --name $EKS_CLUSTER_NAME"
                             sh 'kubectl set image deployments/$POM_ARTIFACT_ID $POM_ARTIFACT_ID=$IMAGE_URL:$GIT_COMMIT_HASH'
                         }
                     }
