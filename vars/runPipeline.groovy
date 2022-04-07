@@ -22,7 +22,7 @@ def call() {
             EKS_CLUSTER_NAME = "$PROJECT_ID"
             SONARQUBE_ID = tool(name: 'SonarQubeScanner-4.6.2')
 
-            JCR_ENDPOINT = "https://ab-artifactory.hitwc.link"
+            JCR_ENDPOINT = "https://ab-artifactory.hitwc.link/artifactory"
             JCR_LOGIN    = credentials("AB_artifactory_login")
             JCR_REPO_URI = "${JCR_ENDPOINT}/utopia/${IMAGE_LABEL}"
         }
@@ -103,9 +103,9 @@ def call() {
                             sh 'docker rmi $IMAGE_URL:$POM_VERSION'
                             sh 'docker rmi $IMAGE_URL:$GIT_COMMIT_HASH'
                             // Remove JCR-tagged images
-                            sh 'docker rmi $IMAGE_URL:latest'
-                            sh 'docker rmi $IMAGE_URL:$POM_VERSION'
-                            sh 'docker rmi $IMAGE_URL:$GIT_COMMIT_HASH'
+                            sh 'docker rmi $JCR_REPO_URI:latest'
+                            sh 'docker rmi $JCR_REPO_URI:$POM_VERSION'
+                            sh 'docker rmi $JCR_REPO_URI:$GIT_COMMIT_HASH'
                             sh 'docker rmi $IMAGE_LABEL'
                         }
                     }
