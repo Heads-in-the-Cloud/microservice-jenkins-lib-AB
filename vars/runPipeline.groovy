@@ -22,9 +22,8 @@ def call() {
             EKS_CLUSTER_NAME = "$PROJECT_ID"
             SONARQUBE_ID = tool(name: 'SonarQubeScanner-4.6.2')
 
-            JCR_ENDPOINT = "https://ab-artifactory.hitwc.link"
+            JCR_ENDPOINT = "https://ab-artifactory.hitwc.link/artifactory"
             JCR_LOGIN    = credentials("AB_artifactory_login")
-            JCR_REPO_URI = "${JCR_ENDPOINT}/utopia-ab-$POM_ARTIFACT_ID"
         }
 
         stages {
@@ -78,7 +77,7 @@ def call() {
                                 script:'aws sts get-caller-identity --query "Account" --output text',
                                 returnStdout: true
                             ).trim()
-                            env.IMAGE_URL = "${aws_account_id}.dkr.ecr.${aws_region}.amazonaws.com/$IMAGE_LABEL"
+                            env.ECR_URL = "${aws_account_id}.dkr.ecr.${aws_region}.amazonaws.com/$IMAGE_LABEL"
 
                             docker.withRegistry("https://${env.IMAGE_URL}", "ecr:$aws_region:jenkins") {
                                 image.push('latest')
@@ -86,7 +85,9 @@ def call() {
                                 image.push(env.GIT_COMMIT_HASH)
                             }
 
-                            docker.withRegistry("${JCR_REPO_URI}", "AB_artifactory_login") {
+                            env.JCR_URL = "${JCR_ENDPOINT}/$IMAGE_LABEL"
+
+                            docker.withRegistry("https://${env.JCR_URL}", "AB_artifactory_login") {
                                 image.push('latest')
                                 image.push(env.POM_VERSION)
                                 image.push(env.GIT_COMMIT_HASH)
@@ -99,13 +100,14 @@ def call() {
                     cleanup {
                         script {
                             // Remove ECR-tagged images
-                            sh 'docker rmi $IMAGE_URL:latest'
-                            sh 'docker rmi $IMAGE_URL:$POM_VERSION'
-                            sh 'docker rmi $IMAGE_URL:$GIT_COMMIT_HASH'
+                            sh 'docker rmi $ECR_URL:latest'
+                            sh 'docker rmi $ECR_URL:$POM_VERSION'
+                            sh 'docker rmi $ECR_URL:$GIT_COMMIT_HASH'
                             // Remove JCR-tagged images
-                            sh 'docker rmi $JCR_REPO_URI:latest'
-                            sh 'docker rmi $JCR_REPO_URI:$POM_VERSION'
-                            sh 'docker rmi $JCR_REPO_URI:$GIT_COMMIT_HASH'
+                            sh 'docker rmi $JCR_URI:latest'
+                            sh 'docker rmi $JCR_URI:$POM_VERSION'
+                            sh 'docker rmi $JCR_URI:$GIT_COMMIT_HASH'
+                            // Remove base image
                             sh 'docker rmi $IMAGE_LABEL'
                         }
                     }
@@ -126,7 +128,7 @@ def call() {
                                 returnStdout: true
                             ).trim()
                             sh "aws eks --region ${aws_region} update-kubeconfig --name $EKS_CLUSTER_NAME"
-                            sh 'kubectl set image deployments/$POM_ARTIFACT_ID $POM_ARTIFACT_ID=$IMAGE_URL:$GIT_COMMIT_HASH'
+                            sh 'kubectl set image deployments/$POM_ARTIFACT_ID $POM_ARTIFACT_ID=$ECR_URL:$GIT_COMMIT_HASH'
                         }
                     }
                 }
