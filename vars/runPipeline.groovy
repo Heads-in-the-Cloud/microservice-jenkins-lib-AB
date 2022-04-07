@@ -19,7 +19,7 @@ def call() {
                 script: 'git rev-parse HEAD',
                 returnStdout: true
             ).trim()
-            EKS_CLUSTER_NAME = PROJECT_ID
+            EKS_CLUSTER_NAME = "$PROJECT_ID"
             SONARQUBE_ID = tool(name: 'SonarQubeScanner-4.6.2')
         }
 
