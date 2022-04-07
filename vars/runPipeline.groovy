@@ -22,9 +22,9 @@ def call() {
             EKS_CLUSTER_NAME = "$PROJECT_ID"
             SONARQUBE_ID = tool(name: 'SonarQubeScanner-4.6.2')
 
-            JCR_ENDPOINT = "https://ab-artifactory.hitwc.link/artifactory"
+            JCR_ENDPOINT = "https://ab-artifactory.hitwc.link"
             JCR_LOGIN    = credentials("AB_artifactory_login")
-            JCR_REPO_URI = "${JCR_ENDPOINT}/utopia/${IMAGE_LABEL}"
+            JCR_REPO_URI = "${JCR_ENDPOINT}/utopia-ab-$POM_ARTIFACT_ID"
         }
 
         stages {
