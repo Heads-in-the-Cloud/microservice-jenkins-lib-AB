@@ -1,7 +1,9 @@
-def get_pom_value = { key -> sh(
-    script: "./mvnw help:evaluate -Dexpression=${key} -q -DforceStdout",
-    returnStdout: true
-)}
+def get_pom_value() {
+    return sh(
+        script: "./mvnw help:evaluate -Dexpression=${key} -q -DforceStdout",
+        returnStdout: true
+    )
+}
 
 def call() {
     pipeline {
