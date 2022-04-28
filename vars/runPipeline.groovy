@@ -85,13 +85,13 @@ def call() {
                                 image.push(env.GIT_COMMIT_HASH)
                             }
 
-                            env.JCR_URL = "${JCR_ENDPOINT}/$IMAGE_LABEL"
+                            //env.JCR_URL = "${JCR_ENDPOINT}/$IMAGE_LABEL"
 
 
-                            sh 'echo ${JCR_LOGIN_PSW} | docker login ${JCR_ENDPOINT} --username ${JCR_LOGIN_USR} --password-stdin'
-                            image.push('latest')
-                            image.push(env.POM_VERSION)
-                            image.push(env.GIT_COMMIT_HASH)
+                            //sh 'echo ${JCR_LOGIN_PSW} | docker login ${JCR_ENDPOINT} --username ${JCR_LOGIN_USR} --password-stdin'
+                            //image.push('latest')
+                            //image.push(env.POM_VERSION)
+                            //image.push(env.GIT_COMMIT_HASH)
                         }
                     }
                 }
@@ -104,9 +104,9 @@ def call() {
                             sh 'docker rmi $ECR_URL:$POM_VERSION'
                             sh 'docker rmi $ECR_URL:$GIT_COMMIT_HASH'
                             // Remove JCR-tagged images
-                            sh 'docker rmi $JCR_URL:latest'
-                            sh 'docker rmi $JCR_URL:$POM_VERSION'
-                            sh 'docker rmi $JCR_URL:$GIT_COMMIT_HASH'
+                            //sh 'docker rmi $JCR_URL:latest'
+                            //sh 'docker rmi $JCR_URL:$POM_VERSION'
+                            //sh 'docker rmi $JCR_URL:$GIT_COMMIT_HASH'
                             // Remove base image
                             sh 'docker rmi $IMAGE_LABEL'
                         }
